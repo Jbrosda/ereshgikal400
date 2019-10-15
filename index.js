@@ -14,6 +14,10 @@ let minimum_length = function (length1, length2) {
         return length1
     }
 }
+// find out charset to read books-- uses https://www.npmjs.com/package/charset-detector
+
+
+
 //read from this dictionary
 
 
@@ -63,13 +67,16 @@ var sentence_selection = function (input_text) {
     //console.log(possible_three_words_reverse)
     if (possible_three_words_forward.length > 0) {
         // reconstruct has to access inner object
-        var random_index_fwd = Math.floor(Math.random() *possible_three_words_forward.length)
-        let random_index_rev = Math.floor(Math.random() *possible_three_words_reverse.length)
-        let selected_three_words_fwd = possible_three_words_forward[random_index_fwd]
-        let selected_three_words_rev = possible_three_words_reverse[random_index_rev]
+        var random_index = Math.floor(Math.random() *possible_three_words_forward.length)
+        let selected_three_words_fwd = possible_three_words_forward[random_index]
+        let selected_three_words_rev = possible_three_words_reverse[random_index]
 
         let new_sentence_fwd = bot.reconstruct_sentence_fwd(selected_three_words_fwd);
         let new_sentence_rev = bot.reconstruct_sentence_rev(selected_three_words_rev);
+
+        console.log(new_sentence_rev)
+        
+        
         
         let new_sentence = new_sentence_rev +" "+ new_sentence_fwd
         return new_sentence

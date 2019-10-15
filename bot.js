@@ -1,3 +1,36 @@
+//checks if text is timecode
+let check_for_timecode = function (string) {
+    let arrow_exists = string.match('-->')
+    if (arrow_exists) {
+        return true
+    } else {
+        return false
+    }
+}
+//removes timcode, returnes string
+let remove_timecode = function (string) {
+    if (check_for_timecode(string) == true) {
+        let array = string.split(/[ :,]/)
+        let clean_array = []
+        for (let i = 0; i < array.length; i++) {
+            if (array[i] === "-->") {
+                clean_array.pop()
+                clean_array.pop()
+                clean_array.pop()
+                clean_array.pop()
+                clean_array.pop()
+                i += 4
+            } else {
+                clean_array.push(array[i])
+            }
+        }
+        let clean_string = clean_array.join(' ')
+        return clean_string
+    }else{
+        return string
+    }
+}
+
 // converts a sentence from string to array, and throws out eccess "" values
 let clean_up_sentence = function (sentence) {
     // make !, , , ?, . , arrays of their own
@@ -31,6 +64,7 @@ let cleanup_words = function (input_array) {
 var extract_key_value_from_sentence = function (sentence) {
     //append __END__ to signal end of sentence
     let normal_sentence = sentence
+    normal_sentence = remove_timecode(normal_sentence)
     let words = clean_up_sentence(normal_sentence)
     words = cleanup_words(words);
 
@@ -104,7 +138,7 @@ var reconstruct_sentence_fwd = function (three_words) {
         var possible_next_words = Object.keys(possible_next_words_with_occurance);
         var random_index = Math.floor(Math.random() * possible_next_words.length);
         var next_word = possible_next_words[random_index];
-        if (next_word === "__END__" || next_word === "__START__") {
+        if (next_word === "__END__") {
             return result;
         }
         
@@ -146,7 +180,7 @@ var reconstruct_sentence_rev = function (three_words) {
         var possible_next_words = Object.keys(possible_next_words_with_occurance);
         var random_index = Math.floor(Math.random() * possible_next_words.length);
         var next_word = possible_next_words[random_index];
-        if (next_word === "__START__" || next_word === "__END__"){
+        if (next_word === "__END__"){
             return result
         }
         // the next lines are for most used  next words
@@ -172,7 +206,10 @@ var reconstruct_sentence_rev = function (three_words) {
         // change key
         three_words = three_words_split.join(" ");
     }
+
+    
 }
+
 var store_text = function (text) {
     var sentences = text.split(".");
     for (var sentence of sentences) {
