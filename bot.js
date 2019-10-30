@@ -1,3 +1,4 @@
+
 //checks if text is timecode
 let check_for_timecode = function (string) {
     let arrow_exists = string.match('-->')
@@ -7,6 +8,7 @@ let check_for_timecode = function (string) {
         return false
     }
 }
+
 //removes timcode, returnes string
 let remove_timecode = function (string) {
     if (check_for_timecode(string) == true) {
@@ -63,8 +65,8 @@ let cleanup_words = function (input_array) {
 // outputs an Object with two sub_objects
 var extract_key_value_from_sentence = function (sentence) {
     //append __END__ to signal end of sentence
-    let normal_sentence = sentence
-    normal_sentence = remove_timecode(normal_sentence)
+    let orig_sentence = sentence
+    let normal_sentence = remove_timecode(orig_sentence)
     let words = clean_up_sentence(normal_sentence)
     words = cleanup_words(words);
 

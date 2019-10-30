@@ -1,36 +1,53 @@
 var fs = require('fs')
 var bot = require("./bot.js")
+let detect_text_encoding = require('charset-detector');
+let iconv = require('iconv-lite');
+// buffers book, then reencodes it into utf-8 for readFilesync
+
+
+
+
+var match_char_and_read = function (src) {
+    //pass on text as buffer
+    var book_1 = fs.readFileSync(src)
+    // charset detector finds out most probable encoding and encoding type is passed on as a string
+    let encoding_matches_array = detect_text_encoding(book_1)
+    //console.log(encoding_matches_array)
+    let match_1_obj = encoding_matches_array[0]
+    console.log(match_1_obj)
+    let char_match = match_1_obj.charsetName
+    console.log('this is the charset of the file: ' + char_match)
+    str = iconv.decode(book_1, char_match);
+    return str
+}
+
 
 var read_book = function (src) {
-    var book_1 = fs.readFileSync(src, 'utf-8')
-
-    bot.store_text(book_1);
+    let get_string = match_char_and_read(src)
+    bot.store_text(get_string);
 }
-// helpers
-let minimum_length = function (length1, length2) {
-    if (length1 > length2) {
-        return length2
-    } else {
-        return length1
-    }
-}
-// find out charset to read books-- uses https://www.npmjs.com/package/charset-detector
-
-
 
 //read from this dictionary
-
-
-var process_books = function (error, booknames) {
+// var process_books = function (error, booknames) {
+//     for (let i = 0; i < booknames.length; i++) {
+//         var bookname = booknames[i]
+//         if (bookname.indexOf('.txt') > -1) {
+//             read_book('./books/' + bookname)
+//             console.log(bookname)
+//         }
+//     }
+// }
+var process_subs = function (error, booknames) {
     for (let i = 0; i < booknames.length; i++) {
         var bookname = booknames[i]
-        if (bookname.indexOf('.txt') > -1) {
-            read_book('./books/' + bookname)
+        if (bookname.indexOf('.srt') > -1) {
+            read_book('./subtitles/' + bookname)
             console.log(bookname)
         }
     }
 }
-fs.readdir('./books', process_books);
+// fs.readdir('./books', process_books);
+fs.readdir('./subtitles', process_subs);
 // everyday it stores a new book
 var current_book_name = "./books/" + new Date() + '.txt';
 
@@ -67,7 +84,8 @@ var sentence_selection = function (input_text) {
     //console.log(possible_three_words_reverse)
     if (possible_three_words_forward.length > 0) {
         // reconstruct has to access inner object
-        var random_index = Math.floor(Math.random() *possible_three_words_forward.length)
+        var random_index = Math.floor(Math.random() * possible_three_words_forward.length)
+
         let selected_three_words_fwd = possible_three_words_forward[random_index]
         let selected_three_words_rev = possible_three_words_reverse[random_index]
 
@@ -75,10 +93,9 @@ var sentence_selection = function (input_text) {
         let new_sentence_rev = bot.reconstruct_sentence_rev(selected_three_words_rev);
 
         console.log(new_sentence_rev)
-        
-        
-        
-        let new_sentence = new_sentence_rev +" "+ new_sentence_fwd
+
+
+        let new_sentence = new_sentence_rev + " " + new_sentence_fwd
         return new_sentence
     } else {
         var new_sentence = "Tell me more, talking about " + selected_word + " sounds interresting"
@@ -93,13 +110,14 @@ var sentence_selection = function (input_text) {
 //console.log(bot.storage_dictionary)
 
 // BOT CONNEXION
-let the_slack_botter= function () {
+let the_slack_botter = function () {
     var SlackBot = require('slackbots');
 
     // create a bot
     var config = require("./config");
-    var slack_bot = new SlackBot(config);
-    
+    //console.log(config)
+    var slack_bot = new SlackBot(config.slack);
+
     slack_bot.on('start', function () {
         var user = slack_bot.users.find(function (user) {
             if (user.real_name === slack_bot.name) {
@@ -107,7 +125,7 @@ let the_slack_botter= function () {
             }
         })
         slack_bot.id = user.id
-    
+
         // define channel, where bot exist. You can adjust it there https://my.slack.com/services 
     });
     slack_bot.on('message', function (data) {
@@ -115,7 +133,7 @@ let the_slack_botter= function () {
             return
         }
         // all ingoing events https://api.slack.com/rtm
-        console.log(data.text);
+        //console.log(data.text);
         var mentioned = `<@${slack_bot.id}>`;
         var random = Math.random() * 100;
         if (data.text && (data.text.indexOf(mentioned) > -1) || random > 80) {
@@ -128,8 +146,24 @@ let the_slack_botter= function () {
         }
         data.text = data.text.replace(new RegExp(mentioned), "<@self>")
         bot.store_text(data.text)
-    
+
         fs.appendFileSync(current_book_name, data.text + ' . ')
     });
 }
 the_slack_botter()
+// using slim botter  https://github.com/edisonchee/slimbot
+let telegram_botter = function () {
+    const Slimbot = require('slimbot');
+    var config = require("./config");
+    const slimbot = new Slimbot(config.telegram.token);
+
+    // Register listeners
+
+    slimbot.on('message', message => {
+        slimbot.sendMessage(message.chat.id, 'Message received');
+    });
+    // Call API
+
+    slimbot.startPolling();
+}
+telegram_botter()
