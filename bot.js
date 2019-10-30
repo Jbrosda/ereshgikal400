@@ -1,3 +1,34 @@
+let check_for_timecode = function (string) {
+    let arrow_exists = string.match('-->')
+    if (arrow_exists) {
+        return true
+    } else {
+        return false
+    }
+}
+let remove_timecode = function (string) {
+    if (check_for_timecode(string) == true) {
+        let array = string.split(/[ :,]/)
+        let clean_array = []
+        for (let i = 0; i < array.length; i++) {
+            if (array[i] === "-->") {
+                clean_array.pop()
+                clean_array.pop()
+                clean_array.pop()
+                clean_array.pop()
+                clean_array.pop()
+                i += 4
+            } else {
+                clean_array.push(array[i])
+            }
+        }
+        let clean_string = clean_array.join(' ')
+        return clean_string
+    }else{
+        return string
+    }
+}
+
 // converts a sentence from string to array, and throws out eccess "" values
 let clean_up_sentence = function (sentence) {
     // make !, , , ?, . , arrays of their own
@@ -30,7 +61,8 @@ let cleanup_words = function (input_array) {
 // outputs an Object with two sub_objects
 var extract_key_value_from_sentence = function (sentence) {
     //append __END__ to signal end of sentence
-    let normal_sentence = sentence
+    let orig_sentence = sentence
+    let normal_sentence = remove_timecode(orig_sentence)
     let words = clean_up_sentence(normal_sentence)
     words = cleanup_words(words);
 
